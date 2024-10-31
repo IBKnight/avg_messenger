@@ -3,7 +3,7 @@ package com.example.avg_messenger.auth.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.avg_messenger.auth.data.model.User
+import com.example.avg_messenger.auth.data.TokenManager
 import com.example.avg_messenger.auth.domain.model.AuthState
 import com.example.avg_messenger.auth.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,14 +14,27 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
 
+    fun checkTokenAndLogin() {
+        viewModelScope.launch {
+            val isTokenValid = loginUseCase.checkTokenValidity()
+            if (isTokenValid) {
+                _authState.value = AuthState.Success
+            } else {
+                _authState.value = AuthState.Error("")
+
+            }
+        }
+    }
+
+
     fun login(email: String, password: String) {
-        Log.d( "MyTag", "$email, $password")
+        Log.d("MyTag", "$email, $password")
         viewModelScope.launch {
             // Устанавливаем состояние загрузки
             _authState.value = AuthState.Loading
@@ -30,7 +43,7 @@ class AuthViewModel @Inject constructor(
             try {
                 val response = loginUseCase.execute(email, password)
                 // Успешная аутентификация
-                _authState.value = AuthState.Success("fdsfsdfs")
+                _authState.value = AuthState.Success
             } catch (e: Exception) {
                 // Обработка ошибок
                 _authState.value = AuthState.Error(e.localizedMessage ?: "Ошибка авторизации")
