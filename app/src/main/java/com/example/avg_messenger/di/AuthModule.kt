@@ -9,6 +9,7 @@ import com.example.avg_messenger.auth.data.repository.AuthRepositoryImpl
 import com.example.avg_messenger.auth.domain.repository.AuthRepository
 
 import com.example.avg_messenger.auth.domain.usecase.LoginUseCase
+import com.example.avg_messenger.auth.domain.usecase.RegisterUseCase
 import com.example.avg_messenger.chat_list.data.ChatListRemoteDataSource
 import dagger.Module
 import dagger.Provides
@@ -73,6 +74,13 @@ object AuthModule {
     fun provideLoginUseCase(authRepository: AuthRepository): LoginUseCase {
         return LoginUseCase(authRepository)
     }
+
+    @Provides
+    @Singleton
+    fun provideRegisterUseCase(authRepository: AuthRepository): RegisterUseCase {
+        return RegisterUseCase(authRepository)
+    }
+
 
 
 }

@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.avg_messenger.auth.data.TokenManager
 import com.example.avg_messenger.auth.domain.model.AuthState
+import com.example.avg_messenger.auth.domain.model.RegisterState
 import com.example.avg_messenger.auth.domain.usecase.LoginUseCase
+import com.example.avg_messenger.auth.domain.usecase.RegisterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,10 +17,19 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
-) : ViewModel() {
+    private val registerUseCase: RegisterUseCase,
+
+    ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
+
+    private val _registerState = MutableStateFlow<AuthState>(RegisterState.Idle)
+    val registerState: StateFlow<AuthState> = _registerState
+
+    fun resetRegisterState() {
+        _registerState.value = RegisterState.Idle
+    }
 
     fun checkTokenAndLogin() {
         viewModelScope.launch {
@@ -32,9 +43,30 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun register(email: String, password: String, confirmPassword: String) {
+        Log.d("Register", "$email, $password")
+        viewModelScope.launch {
+            if (password != confirmPassword) {
+                _registerState.value = RegisterState.Error("Пароли не совпадают")
+                return@launch
+            }
+            // Устанавливаем состояние загрузки
+            _registerState.value = RegisterState.Loading
+
+            // Обрабатываем аутентификацию
+            try {
+                val response = registerUseCase.execute(email, password)
+                // Успешная аутентификация
+                _registerState.value = RegisterState.Success
+            } catch (e: Exception) {
+                // Обработка ошибок
+                _registerState.value = RegisterState.Error(e.localizedMessage ?: "Ошибка регистрации")
+            }
+        }
+    }
 
     fun login(email: String, password: String) {
-        Log.d("MyTag", "$email, $password")
+        Log.d("Login", "$email, $password")
         viewModelScope.launch {
             // Устанавливаем состояние загрузки
             _authState.value = AuthState.Loading

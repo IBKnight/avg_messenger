@@ -30,6 +30,10 @@ class AuthRepositoryImpl @Inject constructor(
         return User(id = response.userId, login = login, userName = "")
     }
 
+    override suspend fun register(login: String, password: String) {
+        authRemoteDataSource.register(LoginRequest(login, password))
+    }
+
     override suspend fun refreshToken(): Boolean? {
         val refreshToken = tokenManager.getRefreshToken() ?: return null
         val userId = if (tokenManager.getUserId() != -1) tokenManager.getUserId() else return null
