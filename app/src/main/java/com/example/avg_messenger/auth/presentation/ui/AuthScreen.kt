@@ -1,5 +1,6 @@
 package com.example.avg_messenger.auth.presentation.ui
 
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,11 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,14 +24,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.avg_messenger.auth.domain.model.AuthState
 import com.example.avg_messenger.auth.presentation.viewmodel.AuthViewModel
+import com.example.avg_messenger.chat_list.presentation.ui.ChatActivity
 
 @Composable
 fun AuthScreen(
@@ -45,6 +43,7 @@ fun AuthScreen(
         authViewModel?.authState?.collectAsState() ?: remember { mutableStateOf(AuthState.Idle) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     // Обработка ошибок
     val errorMessage = when (authState.value) {
@@ -109,15 +108,14 @@ fun AuthScreen(
     }
     LaunchedEffect(authState.value) {
         if (authState.value is AuthState.Success) {
-            navController?.navigate(NavigationRoutes.ChatsList.title)
+            val intent = Intent(context, ChatActivity::class.java)
+            context.startActivity(intent)
+//            navController?.navigate(AuthNavigationRoutes.ChatsList.title)
         }
     }
 
 
 }
-
-
-
 
 @Composable
 fun AuthButton(onClick: () -> Unit) {

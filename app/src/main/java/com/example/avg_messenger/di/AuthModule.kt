@@ -1,5 +1,6 @@
 package com.example.avg_messenger.di
 
+import com.example.avg_messenger.auth.data.AuthInterceptor
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.avg_messenger.BuildConfig
@@ -10,12 +11,15 @@ import com.example.avg_messenger.auth.domain.repository.AuthRepository
 
 import com.example.avg_messenger.auth.domain.usecase.LoginUseCase
 import com.example.avg_messenger.auth.domain.usecase.RegisterUseCase
-import com.example.avg_messenger.chat_list.data.ChatListRemoteDataSource
+import com.example.avg_messenger.chat_list.data.datasources.ChatListRemoteDataSource
+import com.example.avg_messenger.chat_list.data.repositories.ChatRepositoryImpl
+import com.example.avg_messenger.chat_list.domain.repository.ChatRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -39,9 +43,28 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
+    fun provideAuthInterceptor(
+        tokenManager: TokenManager,
+    ): AuthInterceptor {
+        return AuthInterceptor(
+            tokenManager
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(apiUrl)
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -58,6 +81,14 @@ object AuthModule {
         return retrofit.create(ChatListRemoteDataSource::class.java)
     }
 
+
+    @Provides
+    @Singleton
+    fun provideChatListRepository(
+        chatListRemoteDataSource: ChatListRemoteDataSource,
+    ): ChatRepository {
+        return ChatRepositoryImpl(chatListRemoteDataSource)
+    }
 
     @Provides
     @Singleton
@@ -80,7 +111,6 @@ object AuthModule {
     fun provideRegisterUseCase(authRepository: AuthRepository): RegisterUseCase {
         return RegisterUseCase(authRepository)
     }
-
 
 
 }

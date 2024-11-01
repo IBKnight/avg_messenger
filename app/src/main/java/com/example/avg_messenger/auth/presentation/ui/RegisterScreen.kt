@@ -119,7 +119,7 @@ fun RegisterScreen(
                 message = "Аккаунт успешно создан!",
                 duration = SnackbarDuration.Short
             )
-            navController?.navigate(NavigationRoutes.Auth.title)
+            navController?.navigate(AuthNavigationRoutes.Auth.title)
             authViewModel?.resetRegisterState()
         }
     }

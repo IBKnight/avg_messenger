@@ -3,17 +3,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.avg_messenger.auth.presentation.ui.AuthScreen
 import com.example.avg_messenger.auth.presentation.ui.RegisterScreen
 import com.example.avg_messenger.auth.presentation.ui.SplashScreen
 import com.example.avg_messenger.auth.presentation.viewmodel.AuthViewModel
-import com.example.avg_messenger.chat_list.presentation.ui.ChatListScreen
 
 @Composable
 fun MainNavigation(
@@ -21,30 +17,27 @@ fun MainNavigation(
 ) {
     val authViewModel = hiltViewModel<AuthViewModel>()
 
-    NavHost(navController = navController, startDestination = NavigationRoutes.Splash.title) {
-        composable(NavigationRoutes.Splash.title) { SplashScreen(authViewModel, navController) }
-        composable(NavigationRoutes.Auth.title) {
+    NavHost(navController = navController, startDestination = AuthNavigationRoutes.Splash.title) {
+        composable(AuthNavigationRoutes.Splash.title) { SplashScreen(authViewModel, navController) }
+        composable(AuthNavigationRoutes.Auth.title) {
             AuthScreen(
                 modifier = Modifier.padding(16.dp),
                 authViewModel = authViewModel,
                 navController = navController
             )
         }
-        composable(NavigationRoutes.Register.title) {
+        composable(AuthNavigationRoutes.Register.title) {
             RegisterScreen(
                 modifier = Modifier.padding(16.dp),
                 authViewModel = authViewModel,
                 navController = navController
             )
         }
-        composable(NavigationRoutes.ChatsList.title) { ChatListScreen(navController = navController) }
-
     }
 }
 
-enum class NavigationRoutes(val title: String) {
+enum class AuthNavigationRoutes(val title: String) {
     Splash("splash"),
     Auth("auth"),
     Register("register"),
-    ChatsList("chatsList"),
 }

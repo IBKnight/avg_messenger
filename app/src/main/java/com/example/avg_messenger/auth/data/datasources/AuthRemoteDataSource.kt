@@ -16,4 +16,3 @@ interface AuthRemoteDataSource {
     @POST("/user/refresh/0")
     suspend fun refresh(@Body request: RefreshRequest): String
 }
-

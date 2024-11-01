@@ -7,7 +7,7 @@ import com.example.avg_messenger.auth.data.model.LoginRequest
 import com.example.avg_messenger.auth.data.model.RefreshRequest
 import com.example.avg_messenger.auth.domain.repository.AuthRepository
 import com.example.avg_messenger.auth.data.model.User
-import com.example.avg_messenger.chat_list.data.ChatListRemoteDataSource
+import com.example.avg_messenger.chat_list.data.datasources.ChatListRemoteDataSource
 import retrofit2.HttpException
 import javax.inject.Inject
 
@@ -27,6 +27,7 @@ class AuthRepositoryImpl @Inject constructor(
         )
 
         Log.i("AuthRepositoryImpl", "$response")
+
         return User(id = response.userId, login = login, userName = "")
     }
 
@@ -65,7 +66,7 @@ class AuthRepositoryImpl @Inject constructor(
 
             Log.e("checkTokenValidity", tokenManager.getAccessToken().toString() )
 
-           // val a = chatListRemoteDataSource.getAllChats()
+           val a = chatListRemoteDataSource.getAllChats()
 
 
             //Log.i("allchats", a.toString() )
