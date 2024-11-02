@@ -3,7 +3,7 @@ package com.example.avg_messenger.chat_list.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.avg_messenger.chat_list.data.models.ChatModel
-import com.example.avg_messenger.chat_list.domain.repository.ChatRepository
+import com.example.avg_messenger.chat_list.domain.repository.ChatsListRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
-    private val chatRepository: ChatRepository
+    private val chatsListRepository: ChatsListRepository
 ) : ViewModel() {
 
     private val _chatList = MutableStateFlow<List<ChatModel>>(emptyList())
@@ -24,7 +24,7 @@ class ChatListViewModel @Inject constructor(
 
     private fun loadChats() {
         viewModelScope.launch {
-            _chatList.value = chatRepository.getChats()
+            _chatList.value = chatsListRepository.getChats()
         }
     }
 }

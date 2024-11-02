@@ -16,7 +16,12 @@
         android:theme="@style/Theme.Avg_messenger"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".chat_list.presentation.ui.ChatActivity"
+            android:name=".chat.presentation.ui.ChatActivity"
+            android:exported="false"
+            android:label="@string/title_activity_chat"
+            android:theme="@style/Theme.Avg_messenger" />
+        <activity
+            android:name=".chat_list.presentation.ui.ChatListActivity"
             android:exported="false"
             android:label="@string/title_activity_chat"
             android:theme="@style/Theme.Avg_messenger" />

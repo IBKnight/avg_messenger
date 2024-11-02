@@ -48,7 +48,7 @@ class AuthRepositoryImpl @Inject constructor(
             )
 
             tokenManager.saveTokens(
-                accessToken = accessToken,
+                accessToken = accessToken.accessToken,
                 refreshToken = refreshToken,
                 userId = userId
             )

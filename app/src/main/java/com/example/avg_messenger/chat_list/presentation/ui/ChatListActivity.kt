@@ -14,7 +14,7 @@ import com.example.avg_messenger.ui.theme.Avg_messengerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ChatActivity : ComponentActivity() {
+class ChatListActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

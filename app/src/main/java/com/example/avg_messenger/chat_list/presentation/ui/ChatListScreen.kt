@@ -1,5 +1,6 @@
 package com.example.avg_messenger.chat_list.presentation.ui
 
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,9 +24,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.avg_messenger.chat.presentation.ui.ChatActivity
 import com.example.avg_messenger.chat_list.presentation.viewmodel.ChatListViewModel
 
 @Composable
@@ -34,6 +38,7 @@ fun ChatListScreen(
     viewModel: ChatListViewModel = hiltViewModel()
 ) {
     val chatList by viewModel.chatList.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = { AppBar() },
@@ -51,11 +56,13 @@ fun ChatListScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(chatList) { chat ->
-                        Log.d("CHAT ID",chat.id.toString())
+                        Log.d("CHAT ID", chat.id.toString())
                         ChatItem(
                             chatName = chat.name,
                             onClick = {
-                                // Обработчик клика по чату
+                                val intent = Intent(context, ChatActivity::class.java)
+                                context.startActivity(intent)
+
                             }
                         )
                     }
@@ -64,7 +71,6 @@ fun ChatListScreen(
         }
     )
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,7 +104,10 @@ fun ChatItem(chatName: String, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(60.dp) // Размер иконки
                     .padding(8.dp)
-                    .background(MaterialTheme.colorScheme.primary, shape = CircleShape) // Круглый фон
+                    .background(
+                        MaterialTheme.colorScheme.primary,
+                        shape = CircleShape
+                    ) // Круглый фон
                     .padding(8.dp),
                 tint = MaterialTheme.colorScheme.onPrimary // Цвет иконки
             )

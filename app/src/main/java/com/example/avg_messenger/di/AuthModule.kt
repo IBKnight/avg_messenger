@@ -11,9 +11,13 @@ import com.example.avg_messenger.auth.domain.repository.AuthRepository
 
 import com.example.avg_messenger.auth.domain.usecase.LoginUseCase
 import com.example.avg_messenger.auth.domain.usecase.RegisterUseCase
+import com.example.avg_messenger.chat.data.datasources.ChatWsDatasource
+import com.example.avg_messenger.chat.data.datasources.MessageHistoryDataSource
+import com.example.avg_messenger.chat.data.repository.ChatRepositoryImpl
+import com.example.avg_messenger.chat.domain.repository.ChatRepository
 import com.example.avg_messenger.chat_list.data.datasources.ChatListRemoteDataSource
-import com.example.avg_messenger.chat_list.data.repositories.ChatRepositoryImpl
-import com.example.avg_messenger.chat_list.domain.repository.ChatRepository
+import com.example.avg_messenger.chat_list.data.repositories.ChatsListRepositoryImpl
+import com.example.avg_messenger.chat_list.domain.repository.ChatsListRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -71,6 +75,27 @@ object AuthModule {
 
     @Provides
     @Singleton
+    fun provideWebSocketDataSource(okHttpClient: OkHttpClient): ChatWsDatasource {
+        return ChatWsDatasource(okHttpClient)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMessageHistoryDataSource(retrofit: Retrofit): MessageHistoryDataSource {
+        return retrofit.create(MessageHistoryDataSource::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideChatRepository(
+        chatWsDatasource: ChatWsDatasource,
+        messageHistoryDataSource: MessageHistoryDataSource
+    ): ChatRepository {
+        return ChatRepositoryImpl(chatWsDatasource, messageHistoryDataSource)
+    }
+
+    @Provides
+    @Singleton
     fun provideAuthDataSource(retrofit: Retrofit): AuthRemoteDataSource {
         return retrofit.create(AuthRemoteDataSource::class.java)
     }
@@ -86,8 +111,8 @@ object AuthModule {
     @Singleton
     fun provideChatListRepository(
         chatListRemoteDataSource: ChatListRemoteDataSource,
-    ): ChatRepository {
-        return ChatRepositoryImpl(chatListRemoteDataSource)
+    ): ChatsListRepository {
+        return ChatsListRepositoryImpl(chatListRemoteDataSource)
     }
 
     @Provides

@@ -2,11 +2,10 @@ package com.example.avg_messenger.auth.data
 
 import android.util.Log
 import com.example.avg_messenger.BuildConfig
-import com.example.avg_messenger.auth.data.datasources.AuthRemoteDataSource
 import com.example.avg_messenger.auth.data.model.RefreshRequest
+import com.example.avg_messenger.auth.data.model.RefreshResponse
 import com.google.gson.Gson
 import okhttp3.*
-import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,79 +16,85 @@ class AuthInterceptor @Inject constructor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
-        val accessToken: String?
+        val accessToken = tokenManager.getAccessToken()
 
-        try {
-            // Получение accessToken
-            accessToken = tokenManager.getAccessToken()
+        val requestBuilder = originalRequest.newBuilder()
+            .header("Authorization", "Bearer $accessToken")
 
-            // Создание нового запроса с заголовком Authorization
-            val requestBuilder = originalRequest.newBuilder()
-                .header("Authorization", "Bearer $accessToken")
+        var response = chain.proceed(requestBuilder.build())
 
-            // Выполнение запроса
-            var response = chain.proceed(requestBuilder.build())
+        if (response.code() == 401 || response.code() == 500) {
+            response.close()
 
-            // Проверка статуса ответа, если токен истек
-            if (response.code() == 401 || response.code() == 500) {
-                Log.d("ОШИБКА ТОКЕНА", response.toString())
-                // Если токен истек, пробуем обновить его
-                val newAccessToken = refreshAccessToken() // Метод для обновления токена
-                if (newAccessToken != null) {
-                    // Обновляем токен в TokenManager
-                    tokenManager.saveTokens(
-                        accessToken = newAccessToken,
-                        refreshToken = tokenManager.getRefreshToken() ?: "",
-                        userId = tokenManager.getUserId()
-                    )
+            // Попытка обновить токен
+            val newAccessToken = refreshAccessToken()
 
-                    // Повторяем оригинальный запрос с новым токеном
-                    val retryRequest = originalRequest.newBuilder()
-                        .header("Authorization", "Bearer $newAccessToken")
-                        .build()
-                    response = chain.proceed(retryRequest)
-                }
+            Log.d("NewAccessToken", "Получен новый токен: $newAccessToken")
+            return if (newAccessToken != null && newAccessToken.isNotEmpty()) {
+
+                tokenManager.saveTokens(
+                    accessToken = newAccessToken,
+                    refreshToken = tokenManager.getRefreshToken() ?: "",
+                    userId = tokenManager.getUserId()
+                )
+
+                Log.i("retryRequest", "$newAccessToken")
+
+
+                // Повторяем запрос с новым токеном
+                val retryRequest = originalRequest.newBuilder()
+                    .header("Authorization", "Bearer $newAccessToken")
+                    .build()
+
+                Log.i("retryRequest", "$retryRequest ${retryRequest.headers()}")
+
+                response = chain.proceed(retryRequest)
+
+
+
+                Log.i("retryRequest", "${response.headers()}")
+
+                response
+            } else {
+                response
             }
-
-            return response
-
-        } catch (e: HttpException) {
-            Log.e("interceptorError", e.code().toString())
-            // В случае ошибки, возвращаем оригинальный ответ или выбрасываем исключение
-            throw e
-        } catch (e: Exception) {
-            Log.e("interceptorError", "Unexpected error: ${e.message}")
-            // Здесь также можно вернуть ответ с ошибкой или пробросить исключение
-            throw e
         }
+
+        return response
     }
 
     private fun refreshAccessToken(): String? {
         val client = OkHttpClient()
         val refreshRequest = RefreshRequest(
-            userId = tokenManager.getUserId(),
-            refreshToken = tokenManager.getRefreshToken() ?: ""
+            userId = tokenManager.getUserId(), refreshToken = tokenManager.getRefreshToken() ?: ""
         )
+
 
         val requestBody = RequestBody.create(
-            MediaType.parse("application/json"),
-            Gson().toJson(refreshRequest)
+            MediaType.parse("application/json"), Gson().toJson(refreshRequest)
         )
 
-        val request = Request.Builder()
-            .url("${BuildConfig.BASE_URL}user/refresh/0")
-            .post(requestBody)
-            .build()
+        val request =
+            Request.Builder().url("${BuildConfig.BASE_URL}user/refresh").post(requestBody).build()
 
         return try {
             val response = client.newCall(request).execute()
+            val token: String
             if (response.isSuccessful) {
-                // Предположим, что ответ содержит новый accessToken в виде строки
-                response.body()?.string() // Или распарсите ответ, если требуется
+
+                val responseBody = response.body()?.string()
+
+                token = Gson().fromJson(responseBody, RefreshResponse::class.java).accessToken
+
+                Log.i("NewToken", "$responseBody")
+
+
             } else {
                 Log.e("refreshTokenError", "Failed to refresh token: ${response.code()}")
-                null
+                token = ""
             }
+
+            return token
         } catch (e: Exception) {
             Log.e("refreshTokenError", "Failed to refresh token: ${e.message}")
             null

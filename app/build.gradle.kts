@@ -29,6 +29,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BASE_URL", "\"${properties["BASE_URL"]}\"")
+        buildConfigField("String", "WS_URL", "\"${properties["WS_URL"]}\"")
+
 
     }
 

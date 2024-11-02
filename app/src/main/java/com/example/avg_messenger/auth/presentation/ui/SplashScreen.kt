@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.avg_messenger.auth.domain.model.AuthState
 import com.example.avg_messenger.auth.presentation.viewmodel.AuthViewModel
-import com.example.avg_messenger.chat_list.presentation.ui.ChatActivity
+import com.example.avg_messenger.chat_list.presentation.ui.ChatListActivity
 
 @Composable
 fun SplashScreen(viewModel: AuthViewModel, navController: NavController) {
@@ -21,7 +21,7 @@ fun SplashScreen(viewModel: AuthViewModel, navController: NavController) {
     LaunchedEffect(viewModel) {
         viewModel.checkTokenAndLogin()
         viewModel.authState.collect { authState ->
-            val intent = Intent(context, ChatActivity::class.java)
+            val intent = Intent(context, ChatListActivity::class.java)
             when (authState) {
 
                 is AuthState.Success -> context.startActivity(intent)

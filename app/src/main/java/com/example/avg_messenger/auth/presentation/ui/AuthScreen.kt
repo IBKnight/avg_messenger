@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.avg_messenger.auth.domain.model.AuthState
 import com.example.avg_messenger.auth.presentation.viewmodel.AuthViewModel
-import com.example.avg_messenger.chat_list.presentation.ui.ChatActivity
+import com.example.avg_messenger.chat_list.presentation.ui.ChatListActivity
 
 @Composable
 fun AuthScreen(
@@ -108,7 +108,7 @@ fun AuthScreen(
     }
     LaunchedEffect(authState.value) {
         if (authState.value is AuthState.Success) {
-            val intent = Intent(context, ChatActivity::class.java)
+            val intent = Intent(context, ChatListActivity::class.java)
             context.startActivity(intent)
 //            navController?.navigate(AuthNavigationRoutes.ChatsList.title)
         }
