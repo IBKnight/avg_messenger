@@ -60,7 +60,9 @@ fun ChatListScreen(
                         ChatItem(
                             chatName = chat.name,
                             onClick = {
-                                val intent = Intent(context, ChatActivity::class.java)
+                                val intent = Intent(context, ChatActivity::class.java).apply {
+                                    putExtra("CHAT_ID", chat.id)
+                                }
                                 context.startActivity(intent)
 
                             }

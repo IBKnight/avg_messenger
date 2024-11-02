@@ -2,19 +2,27 @@ package com.example.avg_messenger.chat.presentation.ui
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -23,20 +31,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.avg_messenger.chat.presentation.ChatViewModel
+import com.example.avg_messenger.common.DateUtils
 import com.example.avg_messenger.ui.theme.Avg_messengerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -49,40 +63,37 @@ class ChatActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Avg_messengerTheme {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = { Text("Chat") },
-                            navigationIcon = {
-                                IconButton(onClick = { onBackPressed() }) {
-                                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                                }
-                            }
-                        )
-                    }
-                ) { innerPadding ->
+                Scaffold(topBar = {
+                    TopAppBar(title = { Text("Chat") }, navigationIcon = {
+                        IconButton(onClick = { onBackPressed() }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    })
+                }) { innerPadding ->
                     ChatScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding),
-                        chatId = intent.getIntExtra("CHAT_ID", -1) // Получаем chatId из Intent
+                        chatId = intent.getIntExtra("CHAT_ID", -1)
                     )
                 }
             }
         }
     }
 }
+
 @Composable
 fun ChatScreen(
-    modifier: Modifier = Modifier,
-    chatId: Int,
-    viewModel: ChatViewModel = hiltViewModel()
+    modifier: Modifier = Modifier, chatId: Int, viewModel: ChatViewModel = hiltViewModel()
 ) {
-    val messages by viewModel.messages.collectAsState()
+    val messages by viewModel.messages.observeAsState(emptyList())
 
     LaunchedEffect(Unit) {
         viewModel.connectToChat(chatId)
-        //viewModel.loadChatHistory(chatId)
+        viewModel.loadChatHistory(chatId)
     }
 
     Column(
@@ -91,35 +102,20 @@ fun ChatScreen(
             .padding(16.dp)
     ) {
         LazyColumn(
-            modifier = Modifier.weight(1f),
-            reverseLayout = true
+            modifier = Modifier.weight(1f), reverseLayout = true
         ) {
-            items(messages) { message ->
+            items(messages.reversed()) { message ->
+                Log.i("messages ui", message.toString())
                 MessageItem(
                     userName = message.userName,
                     text = message.text,
                     sendingTime = message.sendingTime
                 )
             }
+
         }
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            var inputText by remember { mutableStateOf("") }
-
-            TextField(
-                value = inputText,
-                onValueChange = { inputText = it },
-                modifier = Modifier.weight(1f)
-            )
-            Button(
-                onClick = {
-                    viewModel.sendMessage(inputText)
-                    inputText = ""
-                }
-            ) {
-                Text("Send")
-            }
-        }
+        MessageInput(viewModel = viewModel)
     }
 
     DisposableEffect(Unit) {
@@ -129,23 +125,91 @@ fun ChatScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MessageInput(viewModel: ChatViewModel) {
+    var inputText by remember { mutableStateOf("") }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        TextField(
+            value = inputText,
+            onValueChange = { inputText = it },
+            modifier = Modifier
+                .weight(1f)
+                .border(1.dp, Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+                .height(56.dp)
+                .padding(horizontal = 8.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            ),
+            placeholder = { Text(text = "Введите сообщение...", color = Color.Gray) },
+            textStyle = TextStyle(
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        )
+
+        IconButton(
+            onClick = {
+                if (inputText.isNotBlank()) {
+                    viewModel.sendMessage(inputText)
+                    inputText = ""
+                }
+            },
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Send,
+                contentDescription = "Send",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+
 @Composable
 fun MessageItem(
-    userName: String,
-    text: String,
-    sendingTime: String
+    userName: String, text: String, sendingTime: String
 ) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 4.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
     ) {
         Text(text = "$userName:", style = MaterialTheme.typography.labelMedium)
-        Text(text = text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 2.dp))
-        Text(
-            text = sendingTime,
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(top = 2.dp),
-            color = Color.Gray
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp)
+            ) {
+                Text(
+                    text = text, style = MaterialTheme.typography.bodyLarge, color = Color.Black
+                )
+            }
+            Text(
+                text = DateUtils.formatTime(sendingTime),
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                color = Color.Gray
+            )
+        }
     }
 }

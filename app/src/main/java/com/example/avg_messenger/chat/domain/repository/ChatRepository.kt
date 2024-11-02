@@ -1,12 +1,13 @@
 package com.example.avg_messenger.chat.domain.repository
 
+import com.example.avg_messenger.chat.data.models.MessageHistoryModel
 import com.example.avg_messenger.chat.data.models.MessageModel
 import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {
     val messagesFlow: Flow<MessageModel>
 
-    suspend fun fetchMessageHistory(chatId: Int, pageId: Int): List<MessageModel>
+    suspend fun fetchMessageHistory(chatId: Int, pageId: Int): List<MessageHistoryModel>
 
     fun sendMessage(text: String)
 

@@ -3,6 +3,8 @@ package com.example.avg_messenger.chat.data.datasources
 
 import android.util.Log
 import com.example.avg_messenger.BuildConfig
+import com.example.avg_messenger.chat.data.models.ChatMessageModel
+import com.example.avg_messenger.chat.data.models.MessageHistoryModel
 import com.example.avg_messenger.chat.data.models.MessageModel
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -16,7 +18,7 @@ import javax.inject.Inject
 class ChatWsDatasource @Inject constructor(private val okHttpClient: OkHttpClient) {
 
     private var webSocket: WebSocket? = null
-    private val _messagesFlow = MutableSharedFlow<MessageModel>()
+    private val _messagesFlow = MutableSharedFlow<MessageModel>(replay = 1)
     val messagesFlow: SharedFlow<MessageModel> = _messagesFlow
 
     fun connect(chatId: Int) {
@@ -30,9 +32,16 @@ class ChatWsDatasource @Inject constructor(private val okHttpClient: OkHttpClien
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
-                val message = Gson().fromJson(text, MessageModel::class.java)
-                Log.i("WebSocket onMessage", "Received message: $message")
-                _messagesFlow.tryEmit(message)
+                try {
+                    Log.i("WebSocket onMessage", "Received message: $text")
+                    val message = Gson().fromJson(text, ChatMessageModel::class.java)
+                    Log.i("WebSocket onMessage", "Parsed message: $message")
+                    val emitResult = _messagesFlow.tryEmit(message)
+                    Log.i("WebSocket onMessage", "Emit or not emit?: $emitResult")
+
+                } catch (e: Exception) {
+                    Log.e("WebSocket onMessage", "Failed to parse message: ${e.message}")
+                }
             }
 
             override fun onFailure(

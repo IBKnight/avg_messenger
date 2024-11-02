@@ -1,7 +1,9 @@
 package com.example.avg_messenger.chat.data.repository
 
+import android.util.Log
 import com.example.avg_messenger.chat.data.datasources.ChatWsDatasource
 import com.example.avg_messenger.chat.data.datasources.MessageHistoryDataSource
+import com.example.avg_messenger.chat.data.models.MessageHistoryModel
 import com.example.avg_messenger.chat.data.models.MessageModel
 import com.example.avg_messenger.chat.domain.repository.ChatRepository
 import javax.inject.Inject
@@ -14,8 +16,11 @@ class ChatRepositoryImpl @Inject constructor(
 ) : ChatRepository {
     override val messagesFlow: Flow<MessageModel> = chatWsDatasource.messagesFlow
 
-    override suspend fun fetchMessageHistory(chatId: Int, pageId: Int): List<MessageModel> {
-        return messageHistoryDataSource.getMessages(chatId, pageId)
+    override suspend fun fetchMessageHistory(chatId: Int, pageId: Int): List<MessageHistoryModel> {
+        val result = messageHistoryDataSource.getMessages(chatId, pageId)
+
+        Log.i("fetchMessageHistory", result.toString())
+        return result
     }
 
     override fun sendMessage(text: String) = chatWsDatasource.sendMessage(text)

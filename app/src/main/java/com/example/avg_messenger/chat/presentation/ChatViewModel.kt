@@ -1,12 +1,15 @@
 package com.example.avg_messenger.chat.presentation
 
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.avg_messenger.chat.data.models.MessageHistoryModel
 import com.example.avg_messenger.chat.data.models.MessageModel
 import com.example.avg_messenger.chat.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -15,23 +18,29 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(private val chatRepository: ChatRepository) : ViewModel() {
 
-    private val _messages = MutableStateFlow<List<MessageModel>>(emptyList())
-    val messages: StateFlow<List<MessageModel>> = _messages
+    private val _messages = MutableLiveData(emptyList<MessageModel>().toMutableList())
+    val messages: LiveData<MutableList<MessageModel>> = _messages
 
-    private var currentPage = 1
+    private var currentPage = 0
 
     init {
-        chatRepository.messagesFlow.onEach { newMessage ->
-            // Создаем новый список, добавляя новое сообщение к существующему списку
-            _messages.value = _messages.value + newMessage
-        }.launchIn(viewModelScope)
+        Log.i("ChatViewModel", "Initializing message collection")
+        viewModelScope.launch {
+            chatRepository.messagesFlow
+                .catch { exception -> Log.e("WebSocketChatScreen", "Exception: $exception") }
+                .collect { newMessage ->
+                    Log.d("WebSocketChatScreen", "Message: $newMessage")
+                    _messages.value = _messages.value?.toMutableList()?.apply { add(newMessage) }
+                }
+        }
     }
 
     fun loadChatHistory(chatId: Int) {
         viewModelScope.launch {
+
             val history = chatRepository.fetchMessageHistory(chatId, currentPage)
             // Обновляем историю чата, добавляя старые сообщения в начало списка
-            _messages.value = history + _messages.value
+            _messages.value = _messages.value?.toMutableList()?.apply { addAll(history) }
         }
     }
 
