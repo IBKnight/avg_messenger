@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
@@ -24,9 +25,9 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,6 +45,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.avg_messenger.auth.presentation.ui.AuthActivity
 import com.example.avg_messenger.auth.presentation.viewmodel.AuthViewModel
 import com.example.avg_messenger.ui.theme.Avg_messengerTheme
+import com.example.avg_messenger.user.presentation.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -56,11 +58,12 @@ class ChatListActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Avg_messengerTheme {
-                var selectedItem by remember { mutableIntStateOf(0) } // Для хранения состояния выбранной кнопки
-                val drawerState by remember { mutableStateOf(DrawerValue.Closed) } // Состояние Drawer
-                var textFieldValue by remember { mutableStateOf(TextFieldValue()) } // Состояние текстового поля
+                var selectedItem by remember { mutableIntStateOf(0) }
+                val drawerState by remember { mutableStateOf(DrawerValue.Closed) }
+                var textFieldValue by remember { mutableStateOf(TextFieldValue()) }
                 val context = LocalContext.current
                 val authViewModel = hiltViewModel<AuthViewModel>()
+                val userViewModel = hiltViewModel<UserViewModel>()
 
 
                 val navController = rememberNavController()
@@ -71,6 +74,7 @@ class ChatListActivity : ComponentActivity() {
                         ModalDrawerSheet(
                             modifier = Modifier
                         ){
+
                             DrawerContent(
                                 textFieldValue = textFieldValue,
                                 onTextFieldValueChange = { textFieldValue = it },
@@ -80,8 +84,9 @@ class ChatListActivity : ComponentActivity() {
                                     context.startActivity(intent)
                                 },
                                 onSaveClick = {
-                                    // Логика для сохранения имени
+                                    userViewModel.setUsername(textFieldValue.text)
                                     println("Новый имя: ${textFieldValue.text}")
+                                    textFieldValue = textFieldValue.copy("")
                                 }
                             )
                         }
@@ -92,6 +97,7 @@ class ChatListActivity : ComponentActivity() {
                         bottomBar = {
                             NavigationBar() {
                                 NavigationBarItem(
+
                                     icon = {
                                         Icon(
                                             Icons.Filled.Email,
@@ -142,23 +148,22 @@ fun DrawerContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White) // Белый фон для Drawer
+            .background(Color.White)
             .padding(16.dp)
     ) {
         Text("Меню", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Текстовое поле с hint "Введите новое имя"
-        TextField(
+        OutlinedTextField(
             value = textFieldValue,
             onValueChange = onTextFieldValueChange,
             label = { Text("Введите новое имя") },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Введите новое имя") } // Это добавляет hint
-        )
+            placeholder = { Text("Введите новое имя") },
+            shape = RoundedCornerShape(16.dp),
+            )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Кнопка сохранения
         Button(
             onClick = onSaveClick,
             modifier = Modifier.fillMaxWidth()
@@ -167,7 +172,6 @@ fun DrawerContent(
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Кнопка выхода
         Button(
             onClick = onExitClick,
             modifier = Modifier.fillMaxWidth()

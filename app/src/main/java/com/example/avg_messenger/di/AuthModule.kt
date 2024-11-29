@@ -18,6 +18,9 @@ import com.example.avg_messenger.chat_list.domain.repository.ChatsListRepository
 import com.example.avg_messenger.contacts.data.ContactsRepositoryImpl
 import com.example.avg_messenger.contacts.data.datasources.ContactsRemoteDataSource
 import com.example.avg_messenger.contacts.domain.repositories.ContactsRepository
+import com.example.avg_messenger.user.data.UserRepositoryImpl
+import com.example.avg_messenger.user.data.datasource.UserDataSource
+import com.example.avg_messenger.user.domain.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -77,6 +80,20 @@ object AuthModule {
     @Singleton
     fun provideWebSocketDataSource(okHttpClient: OkHttpClient): ChatWsDatasource {
         return ChatWsDatasource(okHttpClient)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserDataSource(retrofit: Retrofit): UserDataSource {
+        return retrofit.create(UserDataSource::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(
+        userRemoteDataSource: UserDataSource,
+    ): UserRepository {
+        return UserRepositoryImpl(userRemoteDataSource)
     }
 
     @Provides

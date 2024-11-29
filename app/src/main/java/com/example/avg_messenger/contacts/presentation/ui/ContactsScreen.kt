@@ -34,10 +34,9 @@ fun ContactsScreen(
     viewModel: ContactsViewModel = hiltViewModel(),
 ) {
     val contacts by viewModel.contactsList.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState() // Отслеживаем ошибки
+    val errorMessage by viewModel.errorMessage.collectAsState()
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-    val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() } // Используем SnackbarHostState
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Фильтруем контакты по запросу
     val filteredContacts = contacts.filter { contact ->
@@ -75,10 +74,10 @@ fun ContactsScreen(
                         searchQuery = query
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.Gray.copy(alpha = 0.1f)),
+                        .fillMaxWidth(),
                     placeholder = { Text("Поиск...") },
-                    textStyle = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp)
+                    textStyle = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp),
+                    shape = RoundedCornerShape(16.dp),
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -97,15 +96,15 @@ fun ContactsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Список контактов
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                LazyColumn(contentPadding = PaddingValues(bottom = 72.dp)) {
                     items(filteredContacts) { contact ->
                         ContactItem(
                             contact = contact,
                             onContactClick = {
-                                val intent = Intent(context, ChatActivity::class.java).apply {
-                                    putExtra("CONTACT_NAME", contact.login)
-                                }
-                                context.startActivity(intent)
+//                                val intent = Intent(context, ChatActivity::class.java).apply {
+//                                    putExtra("CONTACT_NAME", contact.login)
+//                                }
+//                                context.startActivity(intent)
                             },
                             onDeleteClick = {
                                 viewModel.deleteContactById(contact.id) // Удаление контакта
@@ -118,59 +117,4 @@ fun ContactsScreen(
             }
         }
     )
-}
-
-@Composable
-fun ContactItem(
-    contact: ContactModel,
-    onContactClick: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onContactClick() }
-            .padding(8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Person, // Иконка пользователя
-                contentDescription = "Иконка пользователя",
-                modifier = Modifier
-                    .size(60.dp) // Размер иконки
-                    .padding(8.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary,
-                        shape = CircleShape
-                    ) // Круглый фон
-                    .padding(8.dp),
-                tint = MaterialTheme.colorScheme.onPrimary // Цвет иконки
-            )
-
-            Text(
-                text = contact.userName,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
-            )
-
-            Spacer(modifier = Modifier)
-
-            // Кнопка удалить
-            IconButton(
-                onClick = onDeleteClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Удалить контакт",
-                    tint = Color.Red
-                )
-            }
-        }
-    }
-
 }

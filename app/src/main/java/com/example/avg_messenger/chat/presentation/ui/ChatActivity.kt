@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -68,9 +69,15 @@ class ChatActivity : ComponentActivity() {
             Avg_messengerTheme {
                 Scaffold(topBar = {
                     TopAppBar(title = { Text("Chat") }, navigationIcon = {
-                        IconButton(onClick = { onBackPressed() }) {
+                        IconButton(onClick = { onBackPressedDispatcher.onBackPressed() }) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back"
+                            )
+                        }
+                    }, actions = {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                Icons.Outlined.Info, contentDescription = "Back"
                             )
                         }
                     })
@@ -224,7 +231,9 @@ fun MessageItem(
             Text(
                 text = DateUtils.formatTime(sendingTime),
                 style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(top = 4.dp).align(Alignment.End),
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .align(Alignment.End),
                 color = Color.Gray
             )
         }

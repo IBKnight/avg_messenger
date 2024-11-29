@@ -19,7 +19,7 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun fetchMessageHistory(chatId: Int, pageId: Int): List<MessageHistoryModel> {
         val result = messageHistoryDataSource.getMessages(chatId, pageId)
 
-        Log.i("fetchMessageHistory", result.toString())
+        // Log.i("fetchMessageHistory", result.toString())
         return result
     }
 
