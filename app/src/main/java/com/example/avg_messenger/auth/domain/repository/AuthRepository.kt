@@ -7,4 +7,6 @@ interface AuthRepository {
     suspend fun register(login: String, password: String)
     suspend fun refreshToken(): Boolean?
     suspend fun checkTokenValidity(): Boolean
+    suspend fun logout(): Unit
+
 }

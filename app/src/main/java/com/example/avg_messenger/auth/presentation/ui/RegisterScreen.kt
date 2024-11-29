@@ -72,7 +72,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        EmailInput(email) { email = it }
+        LoginInput(email) { email = it }
         Spacer(modifier = Modifier.height(8.dp))
         PasswordInput(password) { password = it }
         Spacer(modifier = Modifier.height(8.dp))

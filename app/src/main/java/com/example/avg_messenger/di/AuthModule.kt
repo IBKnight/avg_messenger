@@ -8,9 +8,6 @@ import com.example.avg_messenger.auth.data.TokenManager
 import com.example.avg_messenger.auth.data.datasources.AuthRemoteDataSource
 import com.example.avg_messenger.auth.data.repository.AuthRepositoryImpl
 import com.example.avg_messenger.auth.domain.repository.AuthRepository
-
-import com.example.avg_messenger.auth.domain.usecase.LoginUseCase
-import com.example.avg_messenger.auth.domain.usecase.RegisterUseCase
 import com.example.avg_messenger.chat.data.datasources.ChatWsDatasource
 import com.example.avg_messenger.chat.data.datasources.MessageHistoryDataSource
 import com.example.avg_messenger.chat.data.repository.ChatRepositoryImpl
@@ -18,6 +15,9 @@ import com.example.avg_messenger.chat.domain.repository.ChatRepository
 import com.example.avg_messenger.chat_list.data.datasources.ChatListRemoteDataSource
 import com.example.avg_messenger.chat_list.data.repositories.ChatsListRepositoryImpl
 import com.example.avg_messenger.chat_list.domain.repository.ChatsListRepository
+import com.example.avg_messenger.contacts.data.ContactsRepositoryImpl
+import com.example.avg_messenger.contacts.data.datasources.ContactsRemoteDataSource
+import com.example.avg_messenger.contacts.domain.repositories.ContactsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -81,6 +81,20 @@ object AuthModule {
 
     @Provides
     @Singleton
+    fun provideContactsRemoteDataSource(retrofit: Retrofit): ContactsRemoteDataSource {
+        return retrofit.create(ContactsRemoteDataSource::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideContactsRepository(
+        contactsRemoteDataSource: ContactsRemoteDataSource,
+    ): ContactsRepository {
+        return ContactsRepositoryImpl(contactsRemoteDataSource)
+    }
+
+    @Provides
+    @Singleton
     fun provideMessageHistoryDataSource(retrofit: Retrofit): MessageHistoryDataSource {
         return retrofit.create(MessageHistoryDataSource::class.java)
     }
@@ -123,18 +137,6 @@ object AuthModule {
         tokenManager: TokenManager
     ): AuthRepository {
         return AuthRepositoryImpl(authRemoteDataSource, chatListRemoteDataSource, tokenManager)
-    }
-
-    @Provides
-    @Singleton
-    fun provideLoginUseCase(authRepository: AuthRepository): LoginUseCase {
-        return LoginUseCase(authRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideRegisterUseCase(authRepository: AuthRepository): RegisterUseCase {
-        return RegisterUseCase(authRepository)
     }
 
 

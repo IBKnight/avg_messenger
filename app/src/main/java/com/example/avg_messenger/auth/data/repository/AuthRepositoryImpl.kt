@@ -80,4 +80,8 @@ class AuthRepositoryImpl @Inject constructor(
             }
         }
     }
+
+    override suspend fun logout() {
+        tokenManager.clearTokens()
+    }
 }

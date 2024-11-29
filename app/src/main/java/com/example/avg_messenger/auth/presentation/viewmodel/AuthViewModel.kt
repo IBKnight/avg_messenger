@@ -6,8 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.avg_messenger.auth.data.TokenManager
 import com.example.avg_messenger.auth.domain.model.AuthState
 import com.example.avg_messenger.auth.domain.model.RegisterState
-import com.example.avg_messenger.auth.domain.usecase.LoginUseCase
-import com.example.avg_messenger.auth.domain.usecase.RegisterUseCase
+import com.example.avg_messenger.auth.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,10 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase,
-    private val registerUseCase: RegisterUseCase,
-
-    ) : ViewModel() {
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
@@ -33,7 +30,7 @@ class AuthViewModel @Inject constructor(
 
     fun checkTokenAndLogin() {
         viewModelScope.launch {
-            val isTokenValid = loginUseCase.checkTokenValidity()
+            val isTokenValid = authRepository.checkTokenValidity()
             if (isTokenValid) {
                 _authState.value = AuthState.Success
             } else {
@@ -55,12 +52,13 @@ class AuthViewModel @Inject constructor(
 
             // Обрабатываем аутентификацию
             try {
-                val response = registerUseCase.execute(email, password)
+                val response = authRepository.register(email, password)
                 // Успешная аутентификация
                 _registerState.value = RegisterState.Success
             } catch (e: Exception) {
                 // Обработка ошибок
-                _registerState.value = RegisterState.Error(e.localizedMessage ?: "Ошибка регистрации")
+                _registerState.value =
+                    RegisterState.Error(e.localizedMessage ?: "Ошибка регистрации")
             }
         }
     }
@@ -73,7 +71,7 @@ class AuthViewModel @Inject constructor(
 
             // Обрабатываем аутентификацию
             try {
-                val response = loginUseCase.execute(email, password)
+                val response = authRepository.login(email, password)
                 // Успешная аутентификация
                 _authState.value = AuthState.Success
             } catch (e: Exception) {
@@ -81,5 +79,23 @@ class AuthViewModel @Inject constructor(
                 _authState.value = AuthState.Error(e.localizedMessage ?: "Ошибка авторизации")
             }
         }
+    }
+
+    fun logout() {
+        Log.d("Login", "")
+        viewModelScope.launch {
+            // Устанавливаем состояние загрузки
+            _authState.value = AuthState.Loading
+
+            // Обрабатываем аутентификацию
+            try {
+                val response = authRepository.logout()
+
+            } catch (e: Exception) {
+                // Обработка ошибок
+                _authState.value = AuthState.Error(e.localizedMessage ?: "Ошибка авторизации")
+            }
+        }
+
     }
 }

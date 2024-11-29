@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter
 
 class DateUtils {
     companion object {
+        //TODO пофиксить ебаный формат даты(из-за него выкидывает из чата)
         fun formatTime(dateTimeString: String): String {
             if (dateTimeString.contains("T") && dateTimeString.endsWith("Z")) {
                 val formatter = DateTimeFormatter.ofPattern("HH:mm")

@@ -16,13 +16,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -67,8 +70,7 @@ class ChatActivity : ComponentActivity() {
                     TopAppBar(title = { Text("Chat") }, navigationIcon = {
                         IconButton(onClick = { onBackPressed() }) {
                             Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
+                                Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back"
                             )
                         }
                     })
@@ -101,6 +103,8 @@ fun ChatScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        //TODO сделать чтобы если один человек пишет несколько сообщений,
+        // то только над первым пишется ник
         LazyColumn(
             modifier = Modifier.weight(1f), reverseLayout = true
         ) {
@@ -153,8 +157,7 @@ fun MessageInput(viewModel: ChatViewModel) {
             ),
             placeholder = { Text(text = "Введите сообщение...", color = Color.Gray) },
             textStyle = TextStyle(
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface
             )
         )
 
@@ -164,8 +167,7 @@ fun MessageInput(viewModel: ChatViewModel) {
                     viewModel.sendMessage(inputText)
                     inputText = ""
                 }
-            },
-            modifier = Modifier.padding(start = 8.dp)
+            }, modifier = Modifier.padding(start = 8.dp)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
@@ -181,33 +183,48 @@ fun MessageInput(viewModel: ChatViewModel) {
 fun MessageItem(
     userName: String, text: String, sendingTime: String
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
     ) {
-        Text(text = "$userName:", style = MaterialTheme.typography.labelMedium)
-        Row(
+        Icon(
+            imageVector = Icons.Filled.Person,
+            contentDescription = "Иконка пользователя",
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    MaterialTheme.colorScheme.primary,
+                    shape = CircleShape
+                )
+                .padding(8.dp),
+            tint = MaterialTheme.colorScheme.onPrimary
+        )
+
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp)
+                .padding(4.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-            verticalAlignment = Alignment.Bottom
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                .padding(8.dp) // Внутренний отступ для текста сообщения
         ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(8.dp)
-            ) {
-                Text(
-                    text = text, style = MaterialTheme.typography.bodyLarge, color = Color.Black
+            Text(
+                text = userName,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.primary
                 )
-            }
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Black
+            )
             Text(
                 text = DateUtils.formatTime(sendingTime),
                 style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.padding(top = 4.dp).align(Alignment.End),
                 color = Color.Gray
             )
         }

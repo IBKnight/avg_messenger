@@ -1,31 +1,179 @@
 package com.example.avg_messenger.chat_list.presentation.ui
 
-import ChatNavigation
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
+import com.example.avg_messenger.auth.presentation.ui.AuthActivity
+import com.example.avg_messenger.auth.presentation.viewmodel.AuthViewModel
 import com.example.avg_messenger.ui.theme.Avg_messengerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ChatListActivity : ComponentActivity() {
+
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             Avg_messengerTheme {
+                var selectedItem by remember { mutableIntStateOf(0) } // Для хранения состояния выбранной кнопки
+                val drawerState by remember { mutableStateOf(DrawerValue.Closed) } // Состояние Drawer
+                var textFieldValue by remember { mutableStateOf(TextFieldValue()) } // Состояние текстового поля
+                val context = LocalContext.current
+                val authViewModel = hiltViewModel<AuthViewModel>()
+
+
                 val navController = rememberNavController()
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    ChatNavigation(navController = navController)
+                ModalNavigationDrawer(
+                    drawerState = rememberDrawerState(drawerState),
+                    drawerContent = {
+                        // Вызов вашего компонента DrawerContent
+                        ModalDrawerSheet(
+                            modifier = Modifier
+                        ){
+                            DrawerContent(
+                                textFieldValue = textFieldValue,
+                                onTextFieldValueChange = { textFieldValue = it },
+                                onExitClick = {
+                                    authViewModel.logout()
+                                    val intent = Intent(context, AuthActivity::class.java)
+                                    context.startActivity(intent)
+                                },
+                                onSaveClick = {
+                                    // Логика для сохранения имени
+                                    println("Новый имя: ${textFieldValue.text}")
+                                }
+                            )
+                        }
+                    }
+                ) {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        bottomBar = {
+                            NavigationBar() {
+                                NavigationBarItem(
+                                    icon = {
+                                        Icon(
+                                            Icons.Filled.Email,
+                                            contentDescription = "Чаты"
+                                        )
+                                    },
+                                    label = { Text("Чаты") },
+                                    selected = selectedItem == 0,
+                                    onClick = {
+                                        selectedItem = 0
+                                        navController.navigate(ChatNavigationRoutes.ChatsList.title)
+                                    }
+                                )
+                                NavigationBarItem(
+                                    icon = {
+                                        Icon(
+                                            Icons.Filled.Person,
+                                            contentDescription = "Контакты"
+                                        )
+                                    },
+                                    label = { Text("Контакты") },
+                                    selected = selectedItem == 1,
+                                    onClick = {
+                                        selectedItem = 1
+                                        navController.navigate(ChatNavigationRoutes.Contacts.title)
+                                    }
+                                )
+                            }
+                        },
+                    ) {
+                        ChatNavigation(navController = navController)
+                    }
                 }
             }
         }
     }
+}
+
+
+@Composable
+fun DrawerContent(
+    textFieldValue: TextFieldValue,
+    onTextFieldValueChange: (TextFieldValue) -> Unit,
+    onExitClick: () -> Unit,
+    onSaveClick: () -> Unit,
+) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White) // Белый фон для Drawer
+            .padding(16.dp)
+    ) {
+        Text("Меню", style = MaterialTheme.typography.titleLarge)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Текстовое поле с hint "Введите новое имя"
+        TextField(
+            value = textFieldValue,
+            onValueChange = onTextFieldValueChange,
+            label = { Text("Введите новое имя") },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Введите новое имя") } // Это добавляет hint
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Кнопка сохранения
+        Button(
+            onClick = onSaveClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Сохранить")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Кнопка выхода
+        Button(
+            onClick = onExitClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Выйти")
+        }
+    }
+
 }

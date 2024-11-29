@@ -10,11 +10,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 
 @Composable
-fun EmailInput(email: String, onEmailChange: (String) -> Unit) {
+fun LoginInput(login: String, onEmailChange: (String) -> Unit) {
     OutlinedTextField(
-        value = email,
+        value = login,
         onValueChange = onEmailChange,
-        label = { Text("Email") },
+        label = { Text("Логин") },
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Email,
