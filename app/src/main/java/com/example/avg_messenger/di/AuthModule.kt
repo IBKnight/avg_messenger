@@ -8,6 +8,7 @@ import com.example.avg_messenger.auth.data.TokenManager
 import com.example.avg_messenger.auth.data.datasources.AuthRemoteDataSource
 import com.example.avg_messenger.auth.data.repository.AuthRepositoryImpl
 import com.example.avg_messenger.auth.domain.repository.AuthRepository
+import com.example.avg_messenger.chat.data.datasources.ChatDatasource
 import com.example.avg_messenger.chat.data.datasources.ChatWsDatasource
 import com.example.avg_messenger.chat.data.datasources.MessageHistoryDataSource
 import com.example.avg_messenger.chat.data.repository.ChatRepositoryImpl
@@ -118,11 +119,18 @@ object AuthModule {
 
     @Provides
     @Singleton
+    fun provideChatDataSource(retrofit: Retrofit): ChatDatasource {
+        return retrofit.create(ChatDatasource::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideChatRepository(
         chatWsDatasource: ChatWsDatasource,
-        messageHistoryDataSource: MessageHistoryDataSource
+        messageHistoryDataSource: MessageHistoryDataSource,
+        chatDatasource: ChatDatasource
     ): ChatRepository {
-        return ChatRepositoryImpl(chatWsDatasource, messageHistoryDataSource)
+        return ChatRepositoryImpl(chatWsDatasource, messageHistoryDataSource, chatDatasource)
     }
 
     @Provides

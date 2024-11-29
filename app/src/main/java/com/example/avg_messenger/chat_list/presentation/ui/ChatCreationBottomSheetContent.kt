@@ -1,6 +1,5 @@
 package com.example.avg_messenger.chat_list.presentation.ui
 
-import android.content.res.Resources.Theme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -50,9 +50,9 @@ fun ContactSelectionSheet(
         OutlinedTextField(
             value = textFieldValue,
             onValueChange = onTextFieldValueChange,
-            label = { Text("Введите новое имя") },
+            label = { Text("Введите название чата") },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Введите новое имя") },
+            placeholder = { Text("Введите название чата") },
             shape = RoundedCornerShape(16.dp),
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -62,24 +62,31 @@ fun ContactSelectionSheet(
             modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(contacts.value) { contact ->
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        if (selectedContacts.contains(contact.id)) {
-                            selectedContacts.remove(contact.id)
-                        } else {
-                            selectedContacts.add(contact.id)
+                Card {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            if (selectedContacts.contains(contact.id)) {
+                                selectedContacts.remove(contact.id)
+                            } else {
+                                selectedContacts.add(contact.id)
+                            }
                         }
-                    }
-                    .padding(8.dp)) {
-                    Text(contact.userName, style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (selectedContacts.contains(contact.id)) {
-                        Icon(
-                            Icons.Filled.Check,
-                            contentDescription = "Выбран",
-                            tint = MaterialTheme.colorScheme.primary
+                        .padding(8.dp)) {
+
+                        Text(
+                            text = contact.userName,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface // Цвет текста
                         )
+                        Spacer(modifier = Modifier.weight(1f))
+                        if (selectedContacts.contains(contact.id)) {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = "Выбран",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
@@ -91,6 +98,8 @@ fun ContactSelectionSheet(
         ) {
             Text("Создать чат")
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

@@ -8,7 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.avg_messenger.chat.data.models.MessageHistoryModel
 import com.example.avg_messenger.chat.data.models.MessageModel
 import com.example.avg_messenger.chat.domain.repository.ChatRepository
+import com.example.avg_messenger.contacts.data.model.ContactModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -22,6 +25,10 @@ class ChatViewModel @Inject constructor(private val chatRepository: ChatReposito
     val messages: LiveData<MutableList<MessageModel>> = _messages
 
     private var currentPage = 0
+
+    private val _members = MutableStateFlow<List<ContactModel>>(emptyList())
+    val members: StateFlow<List<ContactModel>> = _members
+
 
     init {
         Log.i("ChatViewModel", "Initializing message collection")
@@ -41,6 +48,15 @@ class ChatViewModel @Inject constructor(private val chatRepository: ChatReposito
             val history = chatRepository.fetchMessageHistory(chatId, currentPage)
             // Обновляем историю чата, добавляя старые сообщения в начало списка
             _messages.value = _messages.value?.toMutableList()?.apply { addAll(history) }
+        }
+    }
+
+    fun getChatParticipant(chatId: Int) {
+        viewModelScope.launch {
+
+            val participant = chatRepository.fetchChatParticipant(chatId)
+
+            _members.value = participant
         }
     }
 
