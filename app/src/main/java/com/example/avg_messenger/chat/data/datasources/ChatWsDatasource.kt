@@ -4,21 +4,25 @@ package com.example.avg_messenger.chat.data.datasources
 import android.util.Log
 import com.example.avg_messenger.BuildConfig
 import com.example.avg_messenger.chat.data.models.ChatMessageModel
-import com.example.avg_messenger.chat.data.models.MessageHistoryModel
 import com.example.avg_messenger.chat.data.models.MessageModel
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
 
 class ChatWsDatasource @Inject constructor(private val okHttpClient: OkHttpClient) {
 
     private var webSocket: WebSocket? = null
-    private val _messagesFlow = MutableSharedFlow<MessageModel>(replay = 1)
+    private val _messagesFlow = MutableSharedFlow<MessageModel>(replay = 0)
     val messagesFlow: SharedFlow<MessageModel> = _messagesFlow
 
     fun connect(chatId: Int) {
@@ -36,18 +40,22 @@ class ChatWsDatasource @Inject constructor(private val okHttpClient: OkHttpClien
                     Log.i("WebSocket onMessage", "Received message: $text")
                     val message = Gson().fromJson(text, ChatMessageModel::class.java)
                     Log.i("WebSocket onMessage", "Parsed message: $message")
-                    val emitResult = _messagesFlow.tryEmit(message)
-                    Log.i("WebSocket onMessage", "Emit or not emit?: $emitResult")
 
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val emitResult = _messagesFlow.emit(message)
+                            Log.i("WebSocket onMessage", "Emit or not emit?: $emitResult")
+                        } catch (e: Exception) {
+                            Log.e("WebSocket onMessage", "Failed to emit message: ${e.message}")
+                        }
+                    }
                 } catch (e: Exception) {
                     Log.e("WebSocket onMessage", "Failed to parse message: ${e.message}")
                 }
             }
 
             override fun onFailure(
-                webSocket: WebSocket,
-                t: Throwable,
-                response: okhttp3.Response?
+                webSocket: WebSocket, t: Throwable, response: okhttp3.Response?
             ) {
                 Log.e("WebSocket onFailure", "Error: ${t.message}")
             }
